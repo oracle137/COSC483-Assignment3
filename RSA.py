@@ -32,9 +32,8 @@ if __name__ == "__main__":
         else:
             printUsage()
             
-        if sys.argv[6] == '-c':
+        if sys.argv[6] == '-s':
             sigFile = sys.argv[7]
-            
         else:
             printUsage()
             
