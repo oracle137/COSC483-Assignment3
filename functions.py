@@ -1,5 +1,6 @@
 import random
-from Crypto.Util import number
+import hashlib
+
 
 def powv1 (m, e, n):
    s = 1
@@ -55,9 +56,9 @@ def readFile(funName, fileName):
     
 def enc(keyFile, inputFile, outputFile):
     
-    key = readFile('rsa-enc', keyFile).split('\n')
+    key = readFile('rsa-sign', keyFile).split('\n')
     if len(key) != 3:
-        print("rsa-enc: invalide key file")
+        print("rsa-sign: invalide key file")
         exit()
     
     else: # Pull info from public key
@@ -65,12 +66,14 @@ def enc(keyFile, inputFile, outputFile):
         n = int(key[1])
         e = int(key[2])
     
-    plainText = readFile('rsa-enc', inputFile)
+    plainText = readFile('rsa-sign', inputFile)
+    m = hashlib.sha256(plainText.encode()).hexdigest()
+
 
     # Add the padding to the plain text
     r = random.getrandbits(nBits // 2)
     r = r << (nBits - (nBits // 2) - 2)
-    m = r + int(plainText)
+    m = r + int(m,16)
 
     # Calculate the cypher text
     cipherText = powv1(m, e, n)
@@ -79,11 +82,11 @@ def enc(keyFile, inputFile, outputFile):
     with open(outputFile, 'w+') as o:
         o.write(str(cipherText))
 
-def dec(keyFile, inputFile, outputFile):
+def dec(keyFile, messageFile, sigFile):
     
-    key = readFile('rsa-dec', keyFile).split('\n')
+    key = readFile('rsa-validate', keyFile).split('\n')
     if len(key) != 3:
-        print("rsa-dec: invalide key file")
+        print("rsa-validate: invalide key file")
         exit()
     
     else: # Pull the info from the private key
@@ -91,19 +94,22 @@ def dec(keyFile, inputFile, outputFile):
         n = int(key[1])
         d = int(key[2])
     
-    cipherText = readFile('rsa-dec', inputFile)
+    cipherText = readFile('rsa-validate', sigFile)
+
 
     # Calculate the plain text with the padding
     m = powv1(int(cipherText), d, n)
-    # m= pow(int(cipherText),d,n)
-    # print(m)
-    # print(bin(m))
 
     # Pull off the padding
     plainText = m & ((1 << nBits - (nBits // 2) - 2) - 1)
 
-    with open(outputFile, 'w+') as o:
-        o.write(str(plainText))
+    originalText = readFile('rsa-validate', messageFile)
+    m = int(hashlib.sha256(originalText.encode()).hexdigest(),16)
+
+    if plainText == m:
+        print('True')
+    else:
+        print('False')
     
 def isPrime(n):
     if n < 2:
@@ -168,25 +174,25 @@ def modinv(a, m):
     else:
         return x % m
 
-def keygen(pubKeyFile, privKeyFile, numBits):# COmment boxed in stuff if nothing works
-    p = number.getPrime(int(numBits))
-    q = number.getPrime(int(numBits))
-    #############################################
-    # numBits = int(numBits)
-    # p = random.getrandbits(numBits)
-    # q = random.getrandbits(numBits)
-    # while not miller_rabin(p,100) and not miller_rabin(q,100):
-    #     p = random.getrandbits(numBits)
-    #     q = random.getrandbits(numBits)
-    #############################################
-    n = p * q
-    order = (p - 1) * (q - 1)
-    e = getCoprime(order)
-    d = modinv(e, order)
-
-    with open(pubKeyFile, 'w+') as pub:
-        pub.write(str(numBits) + '\n' + str(n) + '\n' + str(e))
-
-    with open(privKeyFile, 'w+') as priv:
-        priv.write(str(numBits) + '\n' + str(n) + '\n' + str(d))
+# def keygen(pubKeyFile, privKeyFile, numBits):# COmment boxed in stuff if nothing works
+#     p = number.getPrime(int(numBits))
+#     q = number.getPrime(int(numBits))
+#     #############################################
+#     # numBits = int(numBits)
+#     # p = random.getrandbits(numBits)
+#     # q = random.getrandbits(numBits)
+#     # while not miller_rabin(p,100) and not miller_rabin(q,100):
+#     #     p = random.getrandbits(numBits)
+#     #     q = random.getrandbits(numBits)
+#     #############################################
+#     n = p * q
+#     order = (p - 1) * (q - 1)
+#     e = getCoprime(order)
+#     d = modinv(e, order)
+#
+#     with open(pubKeyFile, 'w+') as pub:
+#         pub.write(str(numBits) + '\n' + str(n) + '\n' + str(e))
+#
+#     with open(privKeyFile, 'w+') as priv:
+#         priv.write(str(numBits) + '\n' + str(n) + '\n' + str(d))
     
