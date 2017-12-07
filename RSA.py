@@ -11,7 +11,7 @@ def printUsage():
 
 if __name__ == "__main__":
     
-    if not (len(sys.argv) == 8):
+    if (len(sys.argv) < 8):
         printUsage()
         
     elif sys.argv[1] == 'rsa-sign' or sys.argv[1] == 'rsa-validate':
@@ -42,29 +42,33 @@ if __name__ == "__main__":
             
         else: #This has already been checked
             functions.dec(keyFile, messageFile, sigFile)
-        
-    # elif sys.argv[1] == 'rsa-keygen':
-    #
-    #     pubKeyFile = ""
-    #     privKeyFile = ""
-    #     numBits = 0
-    #
-    #     if sys.argv[2] == '-p':
-    #         pubKeyFile = sys.argv[3]
-    #
-    #     else:
-    #         printUsage()
-    #
-    #     if sys.argv[4] == '-s':
-    #         privKeyFile = sys.argv[5]
-    #
-    #     else:
-    #         printUsage()
-    #
-    #     if sys.argv[6] == '-n':
-    #         numBits = sys.argv[7]
-    #
-    #     else:
-    #         printUsage()
-    #
-    #     functions.keygen(pubKeyFile, privKeyFile, numBits)
+    elif sys.argv[1] == 'rsa-keygen':
+
+        pubKeyFile = ""
+        privKeyFile = ""
+        numBits = 0
+
+        if sys.argv[2] == '-p':
+            pubKeyFile = sys.argv[3]
+
+        else:
+            printUsage()
+
+        if sys.argv[4] == '-s':
+            privKeyFile = sys.argv[5]
+
+        else:
+            printUsage()
+
+        if sys.argv[6] == '-n':
+            numBits = sys.argv[7]
+
+        else:
+            printUsage()
+        if len(sys.argv) > 8:
+            if sys.argv[8] == '-c':
+                CA = sys.argv[9]
+            else:
+                printUsage()
+
+        functions.keygen(pubKeyFile, privKeyFile, numBits,CA=CA)

@@ -1,5 +1,6 @@
 import random
 import hashlib
+import Crypto.Util.number
 
 
 def powv1 (m, e, n):
@@ -174,25 +175,22 @@ def modinv(a, m):
     else:
         return x % m
 
-# def keygen(pubKeyFile, privKeyFile, numBits):# COmment boxed in stuff if nothing works
-#     p = number.getPrime(int(numBits))
-#     q = number.getPrime(int(numBits))
-#     #############################################
-#     # numBits = int(numBits)
-#     # p = random.getrandbits(numBits)
-#     # q = random.getrandbits(numBits)
-#     # while not miller_rabin(p,100) and not miller_rabin(q,100):
-#     #     p = random.getrandbits(numBits)
-#     #     q = random.getrandbits(numBits)
-#     #############################################
-#     n = p * q
-#     order = (p - 1) * (q - 1)
-#     e = getCoprime(order)
-#     d = modinv(e, order)
-#
-#     with open(pubKeyFile, 'w+') as pub:
-#         pub.write(str(numBits) + '\n' + str(n) + '\n' + str(e))
-#
-#     with open(privKeyFile, 'w+') as priv:
-#         priv.write(str(numBits) + '\n' + str(n) + '\n' + str(d))
-    
+def keygen(pubKeyFile, privKeyFile, numBits,CA = None):# COmment boxed in stuff if nothing works
+    p = number.getPrime(int(numBits))
+    q = number.getPrime(int(numBits))
+
+    n = p * q
+    order = (p - 1) * (q - 1)
+    e = getCoprime(order)
+    d = modinv(e, order)
+
+    with open(pubKeyFile, 'w+') as pub:
+        pub.write(str(numBits) + '\n' + str(n) + '\n' + str(e))
+
+    with open(privKeyFile, 'w+') as priv:
+        priv.write(str(numBits) + '\n' + str(n) + '\n' + str(d))
+
+    if CA == None:
+        enc(privKeyFile,pubKeyFile,pubKeyFile + "-casig")
+    else:
+        enc(CA, pubKeyFile, pubKeyFile + "-casig")
