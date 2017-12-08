@@ -1,6 +1,6 @@
 import random
 import hashlib
-import Crypto.Util.number
+from Crypto.Util import number
 
 
 def powv1 (m, e, n):
