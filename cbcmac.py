@@ -1,6 +1,5 @@
-import sys, operator, binascii
+import sys, operator
 from Crypto.Cipher import AES
-import hashlib
 blocksize = 128
 keysize = 256
 
@@ -96,10 +95,10 @@ if __name__ == "__main__":
             print("True")
         else:
             print("False")
-        print("Correct Tag: ", checkTag)
-        print("Your Tag:    ", tag)
+        #print("Correct Tag: ", checkTag)
+        #print("Your Tag:    ", tag)
     else:
         tagFile = open(tag,'wb')
         newTag = cbc_enc(key,msg,iv)
         tagFile.write(cbc_enc(key, msg, iv))
-        print(newTag)
+        #print(newTag)

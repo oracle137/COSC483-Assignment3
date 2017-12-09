@@ -1,2 +1,2 @@
 #!/bin/bash
-python3 cbcmac.py cbcmac-tag "$@"
+python3 cbcmac.py "$@" cbcmac-tag

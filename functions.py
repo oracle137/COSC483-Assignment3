@@ -1,19 +1,17 @@
 import random
 import hashlib
 from Crypto.Util import number
-from multiprocessing import Process
 import operator
 import os
 from Crypto.Cipher import AES
-import sys
-from multiprocessing import Process,Manager, Pool
-import multiprocessing as mp
-import binascii
+from Crypto import Random
 
 # Credit to Chris Coe for this code
 # Requires pycrypto, which does indeed work for python3
 blocksize = 128
 keysize = 256
+
+
 
 
 def encrypt(key, raw):
@@ -69,6 +67,20 @@ def remove_padding(raw):
 def XOR(a, b):# https://stackoverflow.com/questions/29408173/byte-operations-xor-in-python
     return bytes(map(operator.xor, a, b))
 
+
+def AES_Creation(directory, mode):
+    AES = Random.new().read(32)
+    if mode == "enc":
+        with open(directory + r"\\" + "manifest", 'wb') as o:
+            o.write(AES)
+        # with open(directory + r"\\" + "manifest-casign", 'wb') as o:
+        #     o.write(AES)
+        return AES
+    else:
+        currentAES = None
+        with open(directory + r"\\" + "manifest", 'rb') as i:
+            currentAES = i.read()
+        return currentAES
 
 # Create a function called "chunks" with two arguments, l and n:
 def chunks(l, n): # https://chrisalbon.com/python/break_list_into_chunks_of_e

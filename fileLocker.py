@@ -1,8 +1,6 @@
 import sys
 import os
 import functions as f
-from Crypto import Random
-import binascii
 
 d = r = p = vk = ''
 
@@ -20,25 +18,14 @@ for i in range(2, len(sys.argv)-1,2):
 
 files = os.listdir(d)
 
-AES = None  # TODO: FIX THIS
-with open("AESkey", 'rb') as aesk:
-    AES = aesk.read()
-
-print(len(AES)*8)
-
 if sys.argv[1] == "lock":
     if not f.dec(vk,p,p+"-casig"):
         exit()
-    # Check that public key verifies
-    AES = Random.new().read(32)
-    with open("AESkey", 'wb') as o:
-        o.write(AES)
-    # Sign the manifest with the private key
+    AES = f.AES_Creation(d, "enc")
 
     for filename in files:
         with open(d + r"\\" + filename, 'rb') as o:
             tmp = o.read()
-        # tmp = f.readFile("Lock",d + r"\\" + filename)
 
         ciphertext = f.cbc_enc(AES,tmp,f.IV_Gen())
         os.remove(d + r"\\" + filename)
@@ -50,10 +37,6 @@ if sys.argv[1] == "lock":
             tmp = o.read()
         with open(d +r"\\" + filename + ".tag", 'wb') as o:
             o.write(f.cbc_sign(AES,tmp,bytes('0000000000000001',encoding='utf-8')))
-    # Create tags for all the cipher text files
-    f.enc2(p, "AESkey", d + r"\\" + "manifest")
-    #os.remove("AESkey")
-    # Then, generate random AES key, encrypt it with locking party's public key, and write it to a file (manifest)
     f.enc(r, d + r"\\" + "manifest", d + r"\\" + "manifest-casig")
 elif sys.argv[1] == "unlock":
     # Check that public key verifies
@@ -63,6 +46,7 @@ elif sys.argv[1] == "unlock":
         exit()
 
     os.remove(d + r"\\" + "manifest-casig")
+    AES = f.AES_Creation(d, "dec")
     for filename in files:
         if filename == "manifest" or filename == "manifest-casig" or filename.endswith(".tag"):
             continue # TODO: remove file
