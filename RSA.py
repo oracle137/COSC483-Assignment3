@@ -47,6 +47,7 @@ if __name__ == "__main__":
         pubKeyFile = ""
         privKeyFile = ""
         numBits = 0
+        CA = None
 
         if sys.argv[2] == '-p':
             pubKeyFile = sys.argv[3]
