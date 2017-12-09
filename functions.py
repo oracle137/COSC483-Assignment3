@@ -176,6 +176,35 @@ def enc(keyFile, inputFile, outputFile):
     with open(outputFile, 'w+') as o:
         o.write(str(cipherText))
 
+
+def enc2(keyFile, inputFile, outputFile):
+    key = readFile('rsa-sign', keyFile).split('\n')
+    if len(key) != 3:
+        print("rsa-sign: invalide key file")
+        exit()
+
+    else:  # Pull info from public key
+        nBits = int(key[0])
+        n = int(key[1])
+        e = int(key[2])
+    with open(inputFile,'rb')as o:
+        plainText = o.read()
+
+
+
+    # Add the padding to the plain text
+    r = random.getrandbits(nBits // 2)
+    r = r << (nBits - (nBits // 2) - 2)
+    m = r + int.from_bytes(plainText,byteorder='big')
+
+    # Calculate the cypher text
+    cipherText = powv1(m, e, n)
+    # cipherText = pow(m,e,n)
+
+    with open(outputFile, 'w+') as o:
+        o.write(str(cipherText))
+
+
 def dec(keyFile, messageFile, sigFile):
     
     key = readFile('rsa-validate', keyFile).split('\n')

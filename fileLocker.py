@@ -1,6 +1,7 @@
 import sys
 import os
 import functions as f
+from Crypto import Random
 import binascii
 
 d = r = p = vk = ''
@@ -19,16 +20,19 @@ for i in range(2, len(sys.argv)-1,2):
 
 files = os.listdir(d)
 
+AES = None  # TODO: FIX THIS
+with open("AESkey", 'rb') as aesk:
+    AES = aesk.read()
 
+print(len(AES)*8)
 
 if sys.argv[1] == "lock":
     if not f.dec(vk,p,p+"-casig"):
         exit()
-    print("hey it validated")
     # Check that public key verifies
-    AES = os.urandom(128)
-    with open("AESkey", 'w+') as o:
-        o.write(str(AES))
+    AES = Random.new().read(32)
+    with open("AESkey", 'wb') as o:
+        o.write(AES)
     # Sign the manifest with the private key
 
     for filename in files:
@@ -44,42 +48,44 @@ if sys.argv[1] == "lock":
     for filename in files:
         with open(d + r"\\" + filename, 'rb') as o:
             tmp = o.read()
-        f.cbc_sign(AES,tmp,bytes('0000000000000001',encoding='utf-8'))
+        with open(d +r"\\" + filename + ".tag", 'wb') as o:
+            o.write(f.cbc_sign(AES,tmp,bytes('0000000000000001',encoding='utf-8')))
     # Create tags for all the cipher text files
-    f.enc(p, "AESkey", d + r"\\" + "manifest")
+    f.enc2(p, "AESkey", d + r"\\" + "manifest")
     #os.remove("AESkey")
     # Then, generate random AES key, encrypt it with locking party's public key, and write it to a file (manifest)
     f.enc(r, d + r"\\" + "manifest", d + r"\\" + "manifest-casig")
 elif sys.argv[1] == "unlock":
-#     # Check that public key verifies
+    # Check that public key verifies
     if not f.dec(vk, p, p + "-casig"):
         exit()
     if not f.dec(p,d + r"\\" + "manifest",d + r"\\" + "manifest-casig"):
         exit()
-#     # Check that manifest verifies from public key
-#     # Verify tags match (remove tags after)
-    #manifest = None
-    # with open("AESkey", 'rb') as filw:
-    #    key = filw.read()
-    # print(int.from_bytes(key,byteorder='little'))
-    # print(f.dec2(p, d + r"\\" + "manifest"))
-    _, plaintext = f.dec(p,d + r"\\" + "manifest",d + r"\\" + "manifest-casig")
+
+    os.remove(d + r"\\" + "manifest-casig")
     for filename in files:
-        if filename == "manifest" or filename == "manifest-casig":
+        if filename == "manifest" or filename == "manifest-casig" or filename.endswith(".tag"):
             continue # TODO: remove file
         else:
+
+            tagContents = None
+            with open(d + r"\\" + filename + ".tag", 'rb') as tagFile:
+                tagContents = tagFile.read()
+            fileContents = None
+            with open(d + r"\\" + filename, 'rb') as currentFile:
+                fileContents = currentFile.read()
+            fileTag = f.cbc_sign(AES,fileContents,bytes('0000000000000001',encoding='utf-8'))
+            if tagContents != fileTag:
+                print("Incorrect tag")
+                exit(1)
+            os.remove(d + r"\\" + filename + ".tag")
+
             tmp = None
             with open(d + r"\\" + filename, 'rb') as o:
                 tmp = o.read()
-            print(tmp)
+
             with open(d + r"\\" + filename, 'wb') as o:
-                o.write(f.cbc_dec(bytes(str(plaintext), encoding='utf-8'), tmp))
-
-    # get key from manifest
-   # for file in files:
-   #     with open(d + r"\\" + file, 'rb') as o:
-
-
-    #     # Decrypt files
+                o.write(f.cbc_dec(AES, tmp))
+    os.remove(d + r"\\" + "manifest")
 else:
      print("Invalid usage, use shell script to run appropriate behavior.")
